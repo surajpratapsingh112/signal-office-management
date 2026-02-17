@@ -12,6 +12,8 @@ import AllLeaves from './pages/AllLeaves';
 import Holidays from './pages/Holidays';
 import LeaveSettings from './pages/LeaveSettings';
 import EmployeeFieldSettings from './pages/EmployeeFieldSettings';
+import GateDutySetup from './pages/GateDutySetup';
+import GateDutyRoster from './pages/GateDutyRoster';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -131,6 +133,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <EmployeeFieldSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gate-duty/setup"
+        element={
+          <ProtectedRoute>
+            <GateDutySetup />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gate-duty/roster"
+        element={
+          <ProtectedRoute>
+            <GateDutyRoster />
           </ProtectedRoute>
         }
       />

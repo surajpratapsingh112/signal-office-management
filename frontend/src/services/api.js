@@ -117,4 +117,34 @@ export const employeeFieldSettingsAPI = {
   reorder: (fields) => api.put('/employee-field-settings/reorder/all', { fields })
 };
 
+export const gateDutyAPI = {
+  // Setup yearly gate duty (1-31 dates with multiple slots)
+  createSetup: (data) => api.post('/gate-duty/setup', data),
+  
+  // Update single slot for a date
+  updateSlot: (dutyId, data) => api.put(`/gate-duty/setup/${dutyId}/slot`, data),
+  
+  // Get yearly setup
+  getSetup: (year) => api.get(`/gate-duty/setup/${year}`),
+  
+  // Add monthly replacement
+  addReplacement: (data) => api.post('/gate-duty/replacement', data),
+  
+  // Remove replacement
+  removeReplacement: (date, month, year, slot) => 
+    api.delete(`/gate-duty/replacement/${date}/${month}/${year}/${slot}`),
+  
+  // Get monthly roster (with replacements)
+  getMonthlyRoster: (year, month) => 
+    api.get(`/gate-duty/roster/${year}/${month}`),
+  
+  // Get report
+  getReport: (startDate, endDate) => 
+    api.get('/gate-duty/report', { params: { startDate, endDate } }),
+  
+  // Check employee availability
+  checkAvailability: (employeeId, date) => 
+    api.get(`/gate-duty/check-availability/${employeeId}/${date}`)
+};
+
 export default api;

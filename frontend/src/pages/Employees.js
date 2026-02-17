@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { employeesAPI, unitsAPI } from '../services/api';
+import { employeesAPI, unitsAPI, employeeFieldSettingsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 
@@ -114,29 +114,27 @@ const Employees = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              नया कर्मचारी जोड़ें
+              नया कर्मचारी
             </button>
           )}
         </div>
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                खोजें (नाम, PNO, मोबाइल)
+                खोजें (नाम, PNO, Mobile)
               </label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="खोजें..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Unit Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 यूनिट
@@ -144,7 +142,7 @@ const Employees = () => {
               <select
                 value={selectedUnit}
                 onChange={(e) => setSelectedUnit(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">सभी यूनिट्स</option>
                 {units.map(unit => (
@@ -153,7 +151,6 @@ const Employees = () => {
               </select>
             </div>
 
-            {/* Rank Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 पद
@@ -161,7 +158,7 @@ const Employees = () => {
               <select
                 value={selectedRank}
                 onChange={(e) => setSelectedRank(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">सभी पद</option>
                 {ranks.map(rank => (
@@ -170,7 +167,6 @@ const Employees = () => {
               </select>
             </div>
 
-            {/* Gender Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 लिंग
@@ -178,32 +174,22 @@ const Employees = () => {
               <select
                 value={selectedGender}
                 onChange={(e) => setSelectedGender(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">सभी</option>
-                <option value="MALE">पुरुष (MALE)</option>
-                <option value="FEMALE">महिला (FEMALE)</option>
-                <option value="OTHER">अन्य (OTHER)</option>
+                <option value="MALE">MALE</option>
+                <option value="FEMALE">FEMALE</option>
               </select>
             </div>
           </div>
 
-          {/* Results Count & Clear Filters */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-             {employees.length}  में से {filteredEmployees.length} कर्मचारी दिख रहे हैं
-            </div>
-            {(searchTerm || selectedUnit || selectedRank || selectedGender) && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                सभी फ़िल्टर साफ़ करें
-              </button>
-            )}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-semibold"
+            >
+              Clear Filters
+            </button>
           </div>
         </div>
 
@@ -213,72 +199,28 @@ const Employees = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    क्रम
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    नाम
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    PNO
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    पद
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    यूनिट
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    मोबाइल
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ब्लड ग्रुप
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">नाम</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PNO</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">पद</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">यूनिट</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">मोबाइल</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ब्लड ग्रुप</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200">
                 {filteredEmployees.map((employee, index) => (
                   <tr key={employee._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {index + 1}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                        {employee.gender === 'MALE' ? (
-                          <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 9c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm3 11c-3.9 0-7-3.1-7-7s3.1-7 7-7 7 3.1 7 7-3.1 7-7 7z"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C9.8 2 8 3.8 8 6s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 10c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6z"/>
-                          </svg>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">{employee.gender}</div>
+                      <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                      <div className="text-sm text-gray-500">{employee.gender}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.pno}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {employee.rank}
-                        </span>
-                        {employee.rankNumber && (
-                          <span className="text-xs text-gray-500">#{employee.rankNumber}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.currentUnit?.name || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.mobile}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.pno}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.rank}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.currentUnit?.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.mobile}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                         {employee.bloodGroup}
@@ -360,20 +302,21 @@ const Employees = () => {
   );
 };
 
-// Employee Detail Modal Component
+// Employee Detail Modal
 const EmployeeDetailModal = ({ employee, onClose }) => {
+  const InfoItem = ({ label, value }) => (
+    <div>
+      <p className="text-sm text-gray-600 font-medium">{label}</p>
+      <p className="text-base text-gray-900 mt-1">{value || 'N/A'}</p>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">{employee.name}</h2>
-              <p className="text-blue-100 mt-1">
-                {employee.rank}{employee.rankNumber && ` - ${employee.rankNumber}`}
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold">{employee.name}</h2>
             <button
               onClick={onClose}
               className="text-white hover:bg-blue-500 rounded-full p-2"
@@ -385,12 +328,12 @@ const EmployeeDetailModal = ({ employee, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-6">
           {/* Basic Info */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">मूल जानकारी</h3>
             <div className="grid grid-cols-2 gap-4">
+              <InfoItem label="नाम" value={employee.name} />
               <InfoItem label="PNO" value={employee.pno} />
               <InfoItem 
                 label="पद" 
@@ -423,13 +366,29 @@ const EmployeeDetailModal = ({ employee, onClose }) => {
               />
             </div>
           </div>
+
+          {/* Custom Fields */}
+          {employee.customFields && Object.keys(employee.customFields).length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">अतिरिक्त जानकारी</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {Object.entries(employee.customFields).map(([key, value]) => (
+                  <InfoItem 
+                    key={key} 
+                    label={key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} 
+                    value={value?.toString()} 
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-// Add/Edit Employee Modal Component
+// Add/Edit Employee Modal Component WITH CUSTOM FIELDS INTEGRATION
 const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
   const isEdit = !!employee;
   const [formData, setFormData] = useState({
@@ -444,11 +403,40 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
     pensionType: employee?.pensionType || '',
     pensionNumber: employee?.pensionNumber || '',
     currentUnit: employee?.currentUnit?._id || '',
+    customFields: employee?.customFields || {}
   });
   const [loading, setLoading] = useState(false);
+  const [customFieldSettings, setCustomFieldSettings] = useState([]);
+  const [loadingFields, setLoadingFields] = useState(true);
+
+  // Fetch enabled custom fields on component mount
+  useEffect(() => {
+    fetchCustomFields();
+  }, []);
+
+  const fetchCustomFields = async () => {
+    try {
+      const response = await employeeFieldSettingsAPI.getEnabled();
+      setCustomFieldSettings(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching custom fields:', error);
+    } finally {
+      setLoadingFields(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCustomFieldChange = (fieldName, value) => {
+    setFormData({
+      ...formData,
+      customFields: {
+        ...formData.customFields,
+        [fieldName]: value
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -472,11 +460,84 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
     }
   };
 
+  const renderCustomField = (field) => {
+    const value = formData.customFields[field.fieldName] || '';
+
+    switch (field.fieldType) {
+      case 'text':
+      case 'email':
+      case 'phone':
+        return (
+          <input
+            type={field.fieldType}
+            value={value}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.required}
+            placeholder={field.placeholder || ''}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case 'number':
+        return (
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.required}
+            placeholder={field.placeholder || ''}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case 'date':
+        return (
+          <input
+            type="date"
+            value={value}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.required}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case 'dropdown':
+        return (
+          <select
+            value={value}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.required}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select...</option>
+            {field.options?.map((option, idx) => (
+              <option key={idx} value={option}>{option}</option>
+            ))}
+          </select>
+        );
+
+      case 'textarea':
+        return (
+          <textarea
+            value={value}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.required}
+            placeholder={field.placeholder || ''}
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-4xl w-full my-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">
               {isEdit ? 'कर्मचारी Edit करें' : 'नया कर्मचारी जोड़ें'}
@@ -493,7 +554,7 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
           {/* Basic Information */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">मूल जानकारी</h3>
@@ -538,27 +599,28 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select</option>
-                  <option value="RI">RI (रेडियो निरीक्षक)</option>
-                  <option value="RSI">RSI (रेडियो उप निरीक्षक)</option>
-                  <option value="HO">HO (प्रधान परिचालक)</option>
-                  <option value="HOM">HOM (प्रधान परिचालक यांत्रिक)</option>
-                  <option value="AO">AO (सहायक परिचालक)</option>
-                  <option value="WH">WH (कार्यशाला कर्मचारी)</option>
-                  <option value="MESSANGER">MESSANGER (संदेशवाहक)</option>
+                  <option value="">Select Rank</option>
+                  <option value="RI">RI (Radio Inspector)</option>
+                  <option value="RSI">RSI (Radio Sub Inspector)</option>
+                  <option value="HOM">HOM (Head Operator Male)</option>
+                  <option value="HOF">HOF (Head Operator Female)</option>
+                  <option value="HO">HO (Head Operator)</option>
+                  <option value="ROM">ROM (Radio Operator Male)</option>
+                  <option value="ROF">ROF (Radio Operator Female)</option>
+                  <option value="MESSANGER">MESSANGER</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  पद संख्या (यदि हो)
+                  Rank Number
                 </label>
                 <input
                   type="text"
                   name="rankNumber"
                   value={formData.rankNumber}
                   onChange={handleChange}
-                  placeholder="4225, 1899, etc."
+                  placeholder="e.g., 3879"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -613,9 +675,9 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select</option>
-                  <option value="MALE">पुरुष (MALE)</option>
-                  <option value="FEMALE">महिला (FEMALE)</option>
-                  <option value="OTHER">अन्य (OTHER)</option>
+                  <option value="MALE">MALE</option>
+                  <option value="FEMALE">FEMALE</option>
+                  <option value="OTHER">OTHER</option>
                 </select>
               </div>
 
@@ -655,10 +717,10 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select</option>
-                  <option value="NPS">NPS (राष्ट्रीय पेंशन योजना)</option>
-                  <option value="GPF">GPF (सामान्य भविष्य निधि)</option>
-                  <option value="CPF">CPF (अंशदायी भविष्य निधि)</option>
-                  <option value="EPF">EPF (कर्मचारी भविष्य निधि)</option>
+                  <option value="NPS">NPS (National Pension System)</option>
+                  <option value="GPF">GPF (General Provident Fund)</option>
+                  <option value="CPF">CPF (Contributory Provident Fund)</option>
+                  <option value="EPF">EPF (Employees Provident Fund)</option>
                   <option value="UPTRON">UPTRON</option>
                 </select>
               </div>
@@ -703,8 +765,37 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-4 justify-end pt-4 border-t">
+          {/* CUSTOM FIELDS SECTION */}
+          {!loadingFields && customFieldSettings.length > 0 && (
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                अतिरिक्त जानकारी (Custom Fields)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customFieldSettings.map(field => (
+                  <div key={field._id}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {field.fieldLabel} {field.required && '*'}
+                    </label>
+                    {renderCustomField(field)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loadingFields && (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-sm text-gray-500 mt-2">Loading custom fields...</p>
+            </div>
+          )}
+
+          {/* Submit Buttons */}
+          <div className="flex gap-4 justify-end pt-4 border-t sticky bottom-0 bg-white">
             <button
               type="button"
               onClick={onClose}
@@ -715,9 +806,12 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold disabled:bg-blue-400"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? 'Saving...' : isEdit ? 'Update करें' : 'Add करें'}
+              {loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              )}
+              {isEdit ? 'Update कर्मचारी' : 'Add कर्मचारी'}
             </button>
           </div>
         </form>
@@ -725,12 +819,5 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
     </div>
   );
 };
-
-const InfoItem = ({ label, value }) => (
-  <div className="bg-gray-50 p-3 rounded-lg">
-    <p className="text-xs text-gray-500 mb-1">{label}</p>
-    <p className="text-sm font-semibold text-gray-800">{value || 'N/A'}</p>
-  </div>
-);
 
 export default Employees;
