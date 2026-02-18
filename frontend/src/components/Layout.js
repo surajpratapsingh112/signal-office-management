@@ -227,8 +227,7 @@ const Layout = ({ children }) => {
                 <button
                   onClick={() => setDutyMenuOpen(!dutyMenuOpen)}
                   className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition ${
-                    location.pathname.startsWith('/gate-duty')
-                      ? 'bg-blue-100 text-blue-700 font-semibold'
+                    location.pathname.startsWith('/gate-duty') || location.pathname.startsWith('/out-duty')                      ? 'bg-blue-100 text-blue-700 font-semibold'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -249,29 +248,39 @@ const Layout = ({ children }) => {
                 </button>
 
                 {dutyMenuOpen && (
-                  <div className="ml-4 mt-2 space-y-1 border-l-2 border-blue-200 pl-4">
-                    <Link
-                      to="/gate-duty/setup"
-                      className={`block px-4 py-2 rounded-lg transition text-sm ${
-                        location.pathname === '/gate-duty/setup'
-                          ? 'bg-blue-100 text-blue-700 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      गेट ड्यूटी Setup
-                    </Link>
-                    <Link
-                      to="/gate-duty/roster"
-                      className={`block px-4 py-2 rounded-lg transition text-sm ${
-                        location.pathname === '/gate-duty/roster'
-                          ? 'bg-blue-100 text-blue-700 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      गेट ड्यूटी Roster
-                    </Link>
-                  </div>
-                )}
+  <div className="ml-4 mt-2 space-y-1 border-l-2 border-blue-200 pl-4">
+    <Link
+      to="/out-duty"
+      className={`block px-4 py-2 rounded-lg transition text-sm ${
+        location.pathname === '/out-duty'
+          ? 'bg-blue-100 text-blue-700 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
+    >
+      आउट ड्यूटी एवं ट्रेनिंग
+    </Link>
+    <Link
+      to="/gate-duty/setup"
+      className={`block px-4 py-2 rounded-lg transition text-sm ${
+        location.pathname === '/gate-duty/setup'
+          ? 'bg-blue-100 text-blue-700 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
+    >
+      गेट ड्यूटी Setup
+    </Link>
+    <Link
+      to="/gate-duty/roster"
+      className={`block px-4 py-2 rounded-lg transition text-sm ${
+        location.pathname === '/gate-duty/roster'
+          ? 'bg-blue-100 text-blue-700 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
+    >
+      गेट ड्यूटी Roster
+    </Link>
+  </div>
+)}
               </div>
             )}
 

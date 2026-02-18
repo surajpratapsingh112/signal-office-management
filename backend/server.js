@@ -34,6 +34,7 @@ app.use('/api/store', require('./routes/storeRoutes'));
 app.use('/api/equipment', require('./routes/equipmentRoutes'));
 app.use('/api/requisitions', require('./routes/requisitionRoutes'));
 app.use('/api/gate-duty', require('./routes/gateDutyRoutes'));
+app.use('/api/out-duty', require('./routes/outDutyRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {

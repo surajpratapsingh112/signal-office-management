@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { employeesAPI, unitsAPI, employeeFieldSettingsAPI } from '../services/api';
+import { employeesAPI, unitsAPI, employeeFieldSettingsAPI, outDutyAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 
@@ -7,6 +7,7 @@ const Employees = () => {
   const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [units, setUnits] = useState([]);
+  const [outDutyData, setOutDutyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUnit, setSelectedUnit] = useState('');
@@ -22,20 +23,39 @@ const Employees = () => {
   }, []);
 
   const fetchData = async () => {
-    try {
-      const [employeesRes, unitsRes] = await Promise.all([
-        employeesAPI.getAll(),
-        unitsAPI.getAll()
-      ]);
-      setEmployees(employeesRes.data.data);
-      setUnits(unitsRes.data.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error loading data');
-    } finally {
-      setLoading(false);
-    }
+  try {
+    const [employeesRes, unitsRes, outDutyRes] = await Promise.all([
+      employeesAPI.getAll(),
+      unitsAPI.getAll(),
+      outDutyAPI.getAll({ status: 'ONGOING' })
+    ]);
+    setEmployees(employeesRes.data.data);
+    setUnits(unitsRes.data.data);
+    setOutDutyData(outDutyRes.data.data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    alert('Error loading data');
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Check if employee is on out duty
+const getEmployeeOutDuty = (employeeId) => {
+  return outDutyData.find(d => d.employee._id === employeeId);
+};
+
+const getDutyTypeLabel = (type) => {
+  const labels = {
+    'OUT_DUTY': 'आउट ड्यूटी',
+    'TRAINING_OUTSIDE_DISTRICT': 'ट्रेनिंग (जनपद से बाहर)',
+    'TRAINING_WITHIN_DISTRICT': 'ट्रेनिंग (जनपद में)',
+    'TRAINING_HQ': 'विभागीय ट्रेनिंग',
+    'DEPUTATION': 'प्रतिनियुक्ति',
+    'OFFICIAL_TOUR': 'सरकारी दौरा'
   };
+  return labels[type] || type;
+};
 
   const handleDelete = async (employeeId, employeeName) => {
     if (!window.confirm(`क्या आप ${employeeName} को delete करना चाहते हैं?`)) {
@@ -593,22 +613,22 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
                   पद *
                 </label>
                 <select
-                  name="rank"
-                  value={formData.rank}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Rank</option>
-                  <option value="RI">RI (Radio Inspector)</option>
-                  <option value="RSI">RSI (Radio Sub Inspector)</option>
-                  <option value="HOM">HOM (Head Operator Male)</option>
-                  <option value="HOF">HOF (Head Operator Female)</option>
-                  <option value="HO">HO (Head Operator)</option>
-                  <option value="ROM">ROM (Radio Operator Male)</option>
-                  <option value="ROF">ROF (Radio Operator Female)</option>
-                  <option value="MESSANGER">MESSANGER</option>
-                </select>
+  name="rank"
+  value={formData.rank}
+  onChange={handleChange}
+  required
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+>
+  <option value="">Select Rank</option>
+  <option value="RI">RI - रेडियो निरीक्षक (Radio Inspector)</option>
+  <option value="RSI">RSI - रेडियो उप निरीक्षक (Radio Sub Inspector)</option>
+  <option value="HO">HO - प्रधान परिचालक (Head Operator)</option>
+  <option value="HOM">HOM - प्रधान परिचालक(यांत्रिक) (Head Operator Maintenance)</option>
+  <option value="AO">AO - सहायक परिचालक (Assistant Operator)</option>
+  <option value="WH">WH - कर्मशाला कर्मचारी (Workshop Hand)</option>
+  <option value="MESSENGER">MESSENGER - संदेश वाहक (Messenger)</option>
+  <option value="DR">DR - डाक रनर (Dak Runner)</option>
+</select>
               </div>
 
               <div>

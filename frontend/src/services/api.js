@@ -147,4 +147,31 @@ export const gateDutyAPI = {
     api.get(`/gate-duty/check-availability/${employeeId}/${date}`)
 };
 
+// Out Duty API
+export const outDutyAPI = {
+  // Get all out duties
+  getAll: (params) => api.get('/out-duty', { params }),
+  
+  // Get single out duty
+  getById: (id) => api.get(`/out-duty/${id}`),
+  
+  // Create new out duty
+  create: (data) => api.post('/out-duty', data),
+  
+  // Update out duty
+  update: (id, data) => api.put(`/out-duty/${id}`, data),
+  
+  // Mark employee return
+  markReturn: (id, actualReturnDate) => api.put(`/out-duty/${id}/return`, { actualReturnDate }),
+  
+  // Cancel out duty
+  cancel: (id) => api.put(`/out-duty/${id}/cancel`),
+  
+  // Delete out duty
+  delete: (id) => api.delete(`/out-duty/${id}`),
+  
+  // Check employee availability
+  checkAvailability: (employeeId, date) => api.get(`/out-duty/check-availability/${employeeId}/${date}`)
+};
+
 export default api;

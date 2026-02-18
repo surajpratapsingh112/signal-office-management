@@ -14,6 +14,7 @@ import LeaveSettings from './pages/LeaveSettings';
 import EmployeeFieldSettings from './pages/EmployeeFieldSettings';
 import GateDutySetup from './pages/GateDutySetup';
 import GateDutyRoster from './pages/GateDutyRoster';
+import OutDutyManagement from './pages/OutDutyManagement';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -153,7 +154,16 @@ function AppRoutes() {
         }
       />
       <Route path="/" element={<Navigate to="/dashboard" />} />
+
+        {/* Gate Duty Routes */}
+<Route path="/gate-duty/setup" element={<ProtectedRoute><GateDutySetup /></ProtectedRoute>} />
+<Route path="/gate-duty/roster" element={<ProtectedRoute><GateDutyRoster /></ProtectedRoute>} />
+
+{/* Out Duty Route */}
+<Route path="/out-duty" element={<ProtectedRoute><OutDutyManagement /></ProtectedRoute>} />
+
     </Routes>
+    
   );
 }
 
