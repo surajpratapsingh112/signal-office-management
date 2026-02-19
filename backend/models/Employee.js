@@ -55,13 +55,12 @@ const employeeSchema = new mongoose.Schema({
     ref: 'Unit',
     required: true
   },
-  // NEW: Other Unit Details
-otherUnitDetails: {
-  type: String,
-  trim: true,
-  default: null
-  // यहाँ specific unit name store होगी जैसे "Agra", "Meerut", "Delhi HQ"
-},
+  // Other Unit Details
+  otherUnitDetails: {
+    type: String,
+    trim: true,
+    default: null
+  },
   postingDate: {
     type: Date,
     default: Date.now
@@ -74,19 +73,8 @@ otherUnitDetails: {
     startDate: Date,
     endDate: Date
   }],
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-    customFields: {
+  // Custom Fields
+  customFields: {
     type: Map,
     of: mongoose.Schema.Types.Mixed,
     default: {}
