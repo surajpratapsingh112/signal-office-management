@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { gateDutyAPI, employeesAPI } from '../services/api';
+import { gateDutyAPI, employeesAPI, outDutyAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import ReplacementNotice from '../components/ReplacementNotice';
@@ -8,6 +8,7 @@ const GateDutyRoster = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
+  const [outDutyData, setOutDutyData] = useState([]);
   const [roster, setRoster] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -46,13 +47,15 @@ const GateDutyRoster = () => {
     try {
       setLoading(true);
       
-      const [employeesRes, rosterRes] = await Promise.all([
+      const [employeesRes, rosterRes, outDutyRes] = await Promise.all([
         employeesAPI.getAll(),
-        gateDutyAPI.getMonthlyRoster(selectedYear, selectedMonth)
+        gateDutyAPI.getMonthlyRoster(selectedYear, selectedMonth),
+        outDutyAPI.getAll({ status: 'ONGOING' }).catch(() => ({ data: { data: [] } }))
       ]);
 
       setEmployees(employeesRes.data.data);
       setRoster(rosterRes.data.data);
+      setOutDutyData(outDutyRes.data.data);
       
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -334,6 +337,7 @@ const GateDutyRoster = () => {
           <ReplaceModal
             slot={selectedSlot}
             employees={employees}
+            outDutyData={outDutyData}
             month={selectedMonth}
             year={selectedYear}
             onClose={() => {
@@ -363,8 +367,8 @@ const GateDutyRoster = () => {
   );
 };
 
-// Replacement Modal Component (same as before)
-const ReplaceModal = ({ slot, employees, month, year, onClose, onSuccess }) => {
+// Replacement Modal Component
+const ReplaceModal = ({ slot, employees, outDutyData, month, year, onClose, onSuccess }) => {
   const [selectedEmployee, setSelectedEmployee] = useState(
     slot.currentReplacement?.replacementEmployee?._id || ''
   );
@@ -380,6 +384,27 @@ const ReplaceModal = ({ slot, employees, month, year, onClose, onSuccess }) => {
     'MAIN_EVENING': 'Main Gate (14:00-22:00)',
     'SCHOOL_MORNING': 'Training School Gate (06:00-14:00)',
     'SCHOOL_EVENING': 'Training School Gate (14:00-22:00)'
+  };
+
+  // Helper functions for out duty
+  const isEmployeeOnOutDuty = (employeeId) => {
+    return outDutyData.some(d => d.employee._id === employeeId);
+  };
+
+  const getEmployeeOutDutyInfo = (employeeId) => {
+    return outDutyData.find(d => d.employee._id === employeeId);
+  };
+
+  const getDutyTypeLabel = (type) => {
+    const labels = {
+      'OUT_DUTY': 'आउट ड्यूटी',
+      'TRAINING_OUTSIDE_DISTRICT': 'ट्रेनिंग (जनपद से बाहर)',
+      'TRAINING_WITHIN_DISTRICT': 'ट्रेनिंग (जनपद में)',
+      'TRAINING_HQ': 'विभागीय ट्रेनिंग',
+      'DEPUTATION': 'प्रतिनियुक्ति',
+      'OFFICIAL_TOUR': 'सरकारी दौरा'
+    };
+    return labels[type] || type;
   };
 
   const handleEmployeeChange = async (empId) => {
@@ -484,11 +509,19 @@ const ReplaceModal = ({ slot, employees, month, year, onClose, onSuccess }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Select Employee --</option>
-              {employees.map(emp => (
-                <option key={emp._id} value={emp._id}>
-                  {emp.name} - {emp.rank} ({emp.pno})
-                </option>
-              ))}
+              {employees.map(emp => {
+                const onOutDuty = isEmployeeOnOutDuty(emp._id);
+                const outDutyInfo = getEmployeeOutDutyInfo(emp._id);
+                return (
+                  <option 
+                    key={emp._id} 
+                    value={emp._id}
+                    style={onOutDuty ? { color: 'red', fontWeight: 'bold' } : {}}
+                  >
+                    {emp.name} - {emp.rank} ({emp.pno}) {onOutDuty ? `⚠️ ${getDutyTypeLabel(outDutyInfo.dutyType)}` : ''}
+                  </option>
+                );
+              })}
             </select>
 
             {warning && (

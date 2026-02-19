@@ -234,12 +234,33 @@ const getDutyTypeLabel = (type) => {
                   <tr key={employee._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                      <div className="text-sm text-gray-500">{employee.gender}</div>
-                    </td>
+  <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+  <div className="text-sm text-gray-500">{employee.gender}</div>
+  {/* Out Duty Badge */}
+  {(() => {
+    const outDuty = getEmployeeOutDuty(employee._id);
+    if (outDuty) {
+      return (
+        <div className="mt-1">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">
+            {getDutyTypeLabel(outDuty.dutyType)}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  })()}
+</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.pno}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.rank}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.currentUnit?.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+  {employee.currentUnit?.name}
+  {employee.currentUnit?.code === 'OTHER_UNIT' && employee.otherUnitDetails && (
+    <span className="text-blue-600 font-medium">
+      {' '}({employee.otherUnitDetails})
+    </span>
+  )}
+</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{employee.mobile}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
@@ -376,16 +397,23 @@ const EmployeeDetailModal = ({ employee, onClose }) => {
           </div>
 
           {/* Posting Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">पोस्टिंग जानकारी</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <InfoItem label="वर्तमान यूनिट" value={employee.currentUnit?.name} />
-              <InfoItem 
-                label="पोस्टिंग तिथि" 
-                value={new Date(employee.postingDate).toLocaleDateString('hi-IN')} 
-              />
-            </div>
-          </div>
+<div>
+  <h3 className="text-lg font-semibold text-gray-800 mb-3">पोस्टिंग जानकारी</h3>
+  <div className="grid grid-cols-2 gap-4">
+    <InfoItem 
+      label="वर्तमान यूनिट" 
+      value={
+        employee.currentUnit?.code === 'OTHER_UNIT' && employee.otherUnitDetails
+          ? `${employee.currentUnit?.name} (${employee.otherUnitDetails})`
+          : employee.currentUnit?.name
+      } 
+    />
+    <InfoItem 
+      label="पोस्टिंग तिथि" 
+      value={new Date(employee.postingDate).toLocaleDateString('hi-IN')} 
+    />
+  </div>
+</div>
 
           {/* Custom Fields */}
           {employee.customFields && Object.keys(employee.customFields).length > 0 && (
@@ -423,6 +451,7 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
     pensionType: employee?.pensionType || '',
     pensionNumber: employee?.pensionNumber || '',
     currentUnit: employee?.currentUnit?._id || '',
+    otherUnitDetails: employee?.otherUnitDetails || '',
     customFields: employee?.customFields || {}
   });
   const [loading, setLoading] = useState(false);
@@ -762,28 +791,50 @@ const AddEditEmployeeModal = ({ employee, units, onClose, onSuccess }) => {
           </div>
 
           {/* Posting Information */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">पोस्टिंग जानकारी</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  वर्तमान यूनिट *
-                </label>
-                <select
-                  name="currentUnit"
-                  value={formData.currentUnit}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Unit</option>
-                  {units.map(unit => (
-                    <option key={unit._id} value={unit._id}>{unit.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+<div>
+  <h3 className="text-lg font-semibold text-gray-800 mb-4">पोस्टिंग जानकारी</h3>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        वर्तमान यूनिट *
+      </label>
+      <select
+        name="currentUnit"
+        value={formData.currentUnit}
+        onChange={handleChange}
+        required
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">Select Unit</option>
+        {units.map(unit => (
+          <option key={unit._id} value={unit._id}>{unit.name}</option>
+        ))}
+      </select>
+    </div>
+
+    {/* NEW: Conditional Other Unit Details Field */}
+    {formData.currentUnit && 
+     units.find(u => u._id === formData.currentUnit)?.code === 'OTHER_UNIT' && (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          अन्य यूनिट का नाम *
+        </label>
+        <input
+          type="text"
+          name="otherUnitDetails"
+          value={formData.otherUnitDetails}
+          onChange={handleChange}
+          required
+          placeholder="e.g., Agra, Meerut, Delhi HQ"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          कृपया specific unit का नाम दें
+        </p>
+      </div>
+    )}
+  </div>
+</div>
 
           {/* CUSTOM FIELDS SECTION */}
           {!loadingFields && customFieldSettings.length > 0 && (

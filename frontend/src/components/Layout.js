@@ -125,6 +125,21 @@ const Layout = ({ children }) => {
               </Link>
             )}
 
+            {/* Employee Reports */}
+            <Link
+              to="/employee-reports"
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                location.pathname === '/employee-reports'
+                  ? 'bg-blue-100 text-blue-700 font-semibold'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>कर्मचारी रिपोर्ट</span>
+            </Link>
+
             {/* छुट्टी प्रबंधन Dropdown */}
             <div>
               <button
@@ -278,6 +293,17 @@ const Layout = ({ children }) => {
       }`}
     >
       गेट ड्यूटी Roster
+    </Link>
+    {/* NEW: Gate Duty Reports */}
+    <Link
+      to="/gate-duty/reports"
+      className={`block px-4 py-2 rounded-lg transition text-sm ${
+        location.pathname === '/gate-duty/reports'
+          ? 'bg-blue-100 text-blue-700 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
+    >
+      गेट ड्यूटी Reports
     </Link>
   </div>
 )}

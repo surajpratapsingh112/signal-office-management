@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { gateDutyAPI, employeesAPI } from '../services/api';
+import { gateDutyAPI, employeesAPI, outDutyAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 
@@ -10,6 +10,7 @@ const GateDutySetup = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [duties, setDuties] = useState([]);
+  const [outDutyData, setOutDutyData] = useState([]);
 
   const slotKeys = ['MAIN_MORNING', 'MAIN_EVENING', 'SCHOOL_MORNING', 'SCHOOL_EVENING'];
   
@@ -28,12 +29,14 @@ const GateDutySetup = () => {
     try {
       setLoading(true);
       
-      const [employeesRes, setupRes] = await Promise.all([
+      const [employeesRes, setupRes, outDutyRes] = await Promise.all([
         employeesAPI.getAll(),
-        gateDutyAPI.getSetup(selectedYear).catch(() => ({ data: { data: [] } }))
+        gateDutyAPI.getSetup(selectedYear).catch(() => ({ data: { data: [] } })),
+        outDutyAPI.getAll({ status: 'ONGOING' }).catch(() => ({ data: { data: [] } }))
       ]);
 
       setEmployees(employeesRes.data.data);
+      setOutDutyData(outDutyRes.data.data);
       
       // Initialize duties array (1-31 dates)
       const existingDuties = setupRes.data.data;
@@ -90,48 +93,68 @@ const GateDutySetup = () => {
     );
   };
 
-const handleSave = async () => {
-  // Prepare data - convert empty strings to null
-  const validDuties = duties.map(duty => {
-    // Clean up slots - convert empty strings to null
-    const cleanedSlots = {};
-    
-    ['MAIN_MORNING', 'MAIN_EVENING', 'SCHOOL_MORNING', 'SCHOOL_EVENING'].forEach(slotKey => {
-      const employeeId = duty.slots[slotKey]?.permanentEmployee;
-      cleanedSlots[slotKey] = {
-        permanentEmployee: employeeId && employeeId !== '' ? employeeId : null
+  // Check if employee is on out duty
+  const isEmployeeOnOutDuty = (employeeId) => {
+    return outDutyData.some(d => d.employee._id === employeeId);
+  };
+
+  const getEmployeeOutDutyInfo = (employeeId) => {
+    return outDutyData.find(d => d.employee._id === employeeId);
+  };
+
+  const getDutyTypeLabel = (type) => {
+    const labels = {
+      'OUT_DUTY': 'आउट ड्यूटी',
+      'TRAINING_OUTSIDE_DISTRICT': 'ट्रेनिंग (जनपद से बाहर)',
+      'TRAINING_WITHIN_DISTRICT': 'ट्रेनिंग (जनपद में)',
+      'TRAINING_HQ': 'विभागीय ट्रेनिंग',
+      'DEPUTATION': 'प्रतिनियुक्ति',
+      'OFFICIAL_TOUR': 'सरकारी दौरा'
+    };
+    return labels[type] || type;
+  };
+
+  const handleSave = async () => {
+    // Prepare data - convert empty strings to null
+    const validDuties = duties.map(duty => {
+      // Clean up slots - convert empty strings to null
+      const cleanedSlots = {};
+      
+      ['MAIN_MORNING', 'MAIN_EVENING', 'SCHOOL_MORNING', 'SCHOOL_EVENING'].forEach(slotKey => {
+        const employeeId = duty.slots[slotKey]?.permanentEmployee;
+        cleanedSlots[slotKey] = {
+          permanentEmployee: employeeId && employeeId !== '' ? employeeId : null
+        };
+      });
+      
+      return {
+        date: duty.date,
+        slots: cleanedSlots
       };
     });
-    
-    return {
-      date: duty.date,
-      slots: cleanedSlots
-    };
-  });
 
-  if (!window.confirm(`${selectedYear} के लिए Gate Duty Setup save करें?\n\nयह पूरे साल के लिए permanent setup है।`)) {
-    return;
-  }
+    if (!window.confirm(`${selectedYear} के लिए Gate Duty Setup save करें?\n\nयह पूरे साल के लिए permanent setup है।`)) {
+      return;
+    }
 
-  setSaving(true);
+    setSaving(true);
 
-  try {
-    await gateDutyAPI.createSetup({
-      year: selectedYear,
-      duties: validDuties
-    });
+    try {
+      await gateDutyAPI.createSetup({
+        year: selectedYear,
+        duties: validDuties
+      });
 
-    alert('Gate Duty Setup successfully saved!');
-    fetchData();
-    
-  } catch (error) {
-    console.error('Error saving setup:', error);
-    alert('Error: ' + (error.response?.data?.message || 'Failed to save'));
-  } finally {
-    setSaving(false);
-  }
-};
-
+      alert('Gate Duty Setup successfully saved!');
+      fetchData();
+      
+    } catch (error) {
+      console.error('Error saving setup:', error);
+      alert('Error: ' + (error.response?.data?.message || 'Failed to save'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const getAssignedSlotsCount = (duty) => {
     return slotKeys.filter(key => duty.slots[key]?.permanentEmployee).length;
@@ -210,6 +233,7 @@ const handleSave = async () => {
                 <li>Empty slots allowed - सभी slots भरना जरूरी नहीं</li>
                 <li>यह setup पूरे साल के लिए permanent है</li>
                 <li>Monthly replacements बाद में "Gate Duty Roster" page से करें</li>
+                <li><strong>⚠️ Warning:</strong> Red colored employees are currently on Out Duty/Training</li>
               </ul>
             </div>
           </div>
@@ -268,11 +292,19 @@ const handleSave = async () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                           <option value="">-- None --</option>
-                          {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>
-                              {emp.name} ({emp.rank})
-                            </option>
-                          ))}
+                          {employees.map(emp => {
+                            const onOutDuty = isEmployeeOnOutDuty(emp._id);
+                            const outDutyInfo = getEmployeeOutDutyInfo(emp._id);
+                            return (
+                              <option 
+                                key={emp._id} 
+                                value={emp._id}
+                                style={onOutDuty ? { color: 'red', fontWeight: 'bold' } : {}}
+                              >
+                                {emp.name} ({emp.rank}) {onOutDuty ? `⚠️ ${getDutyTypeLabel(outDutyInfo.dutyType)}` : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       </td>
 
@@ -284,11 +316,19 @@ const handleSave = async () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                           <option value="">-- None --</option>
-                          {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>
-                              {emp.name} ({emp.rank})
-                            </option>
-                          ))}
+                          {employees.map(emp => {
+                            const onOutDuty = isEmployeeOnOutDuty(emp._id);
+                            const outDutyInfo = getEmployeeOutDutyInfo(emp._id);
+                            return (
+                              <option 
+                                key={emp._id} 
+                                value={emp._id}
+                                style={onOutDuty ? { color: 'red', fontWeight: 'bold' } : {}}
+                              >
+                                {emp.name} ({emp.rank}) {onOutDuty ? `⚠️ ${getDutyTypeLabel(outDutyInfo.dutyType)}` : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       </td>
 
@@ -300,11 +340,19 @@ const handleSave = async () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                           <option value="">-- None --</option>
-                          {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>
-                              {emp.name} ({emp.rank})
-                            </option>
-                          ))}
+                          {employees.map(emp => {
+                            const onOutDuty = isEmployeeOnOutDuty(emp._id);
+                            const outDutyInfo = getEmployeeOutDutyInfo(emp._id);
+                            return (
+                              <option 
+                                key={emp._id} 
+                                value={emp._id}
+                                style={onOutDuty ? { color: 'red', fontWeight: 'bold' } : {}}
+                              >
+                                {emp.name} ({emp.rank}) {onOutDuty ? `⚠️ ${getDutyTypeLabel(outDutyInfo.dutyType)}` : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       </td>
 
@@ -316,11 +364,19 @@ const handleSave = async () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                           <option value="">-- None --</option>
-                          {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>
-                              {emp.name} ({emp.rank})
-                            </option>
-                          ))}
+                          {employees.map(emp => {
+                            const onOutDuty = isEmployeeOnOutDuty(emp._id);
+                            const outDutyInfo = getEmployeeOutDutyInfo(emp._id);
+                            return (
+                              <option 
+                                key={emp._id} 
+                                value={emp._id}
+                                style={onOutDuty ? { color: 'red', fontWeight: 'bold' } : {}}
+                              >
+                                {emp.name} ({emp.rank}) {onOutDuty ? `⚠️ ${getDutyTypeLabel(outDutyInfo.dutyType)}` : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       </td>
 

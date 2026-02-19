@@ -15,7 +15,8 @@ import EmployeeFieldSettings from './pages/EmployeeFieldSettings';
 import GateDutySetup from './pages/GateDutySetup';
 import GateDutyRoster from './pages/GateDutyRoster';
 import OutDutyManagement from './pages/OutDutyManagement';
-
+import EmployeeReports from './pages/EmployeeReports';
+import GateDutyReports from './pages/GateDutyReports';
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -49,6 +50,7 @@ const PublicRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route
         path="/login"
         element={
@@ -57,6 +59,8 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+
+      {/* Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -65,6 +69,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Employee Routes */}
       <Route
         path="/employees"
         element={
@@ -74,6 +80,24 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/employee-field-settings"
+        element={
+          <ProtectedRoute>
+            <EmployeeFieldSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee-reports"
+        element={
+          <ProtectedRoute>
+            <EmployeeReports />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Units */}
+      <Route
         path="/units"
         element={
           <ProtectedRoute>
@@ -81,6 +105,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Leave Routes */}
       <Route
         path="/leaves"
         element={
@@ -113,6 +139,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Holidays */}
       <Route
         path="/holidays"
         element={
@@ -121,6 +149,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Leave Settings */}
       <Route
         path="/leave-settings"
         element={
@@ -129,14 +159,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/employee-field-settings"
-        element={
-          <ProtectedRoute>
-            <EmployeeFieldSettings />
-          </ProtectedRoute>
-        }
-      />
+
+      {/* Gate Duty Routes */}
       <Route
         path="/gate-duty/setup"
         element={
@@ -153,17 +177,29 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Out Duty Route */}
+      <Route
+        path="/out-duty"
+        element={
+          <ProtectedRoute>
+            <OutDutyManagement />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+  path="/gate-duty/reports"
+  element={
+    <ProtectedRoute>
+      <GateDutyReports />
+    </ProtectedRoute>
+  }
+/>
+
+      {/* Default Route */}
       <Route path="/" element={<Navigate to="/dashboard" />} />
-
-        {/* Gate Duty Routes */}
-<Route path="/gate-duty/setup" element={<ProtectedRoute><GateDutySetup /></ProtectedRoute>} />
-<Route path="/gate-duty/roster" element={<ProtectedRoute><GateDutyRoster /></ProtectedRoute>} />
-
-{/* Out Duty Route */}
-<Route path="/out-duty" element={<ProtectedRoute><OutDutyManagement /></ProtectedRoute>} />
-
     </Routes>
-    
   );
 }
 
