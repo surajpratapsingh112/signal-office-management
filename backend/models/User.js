@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Name is required']
   },
+  // NEW: TFC Store Access
+  tfcStoreAccess: {
+    type: Boolean,
+    default: false
+  },
   unitId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Unit',

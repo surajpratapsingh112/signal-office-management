@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDatabase = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const tfcRoutes = require('./routes/tfcRoutes');
 
 // Load env vars
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/api/equipment', require('./routes/equipmentRoutes'));
 app.use('/api/requisitions', require('./routes/requisitionRoutes'));
 app.use('/api/gate-duty', require('./routes/gateDutyRoutes'));
 app.use('/api/out-duty', require('./routes/outDutyRoutes'));
+app.use('/api/tfc', tfcRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

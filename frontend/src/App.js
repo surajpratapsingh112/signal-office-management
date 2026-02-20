@@ -17,6 +17,9 @@ import GateDutyRoster from './pages/GateDutyRoster';
 import OutDutyManagement from './pages/OutDutyManagement';
 import EmployeeReports from './pages/EmployeeReports';
 import GateDutyReports from './pages/GateDutyReports';
+import TFCManagement from './pages/TFCManagement';
+import TFCReports from './pages/TFCReports';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -196,6 +199,24 @@ function AppRoutes() {
     </ProtectedRoute>
   }
 />
+
+  {/* TFC Store Routes */}
+      <Route
+        path="/tfc-store/manage"
+        element={
+          <ProtectedRoute>
+            <TFCManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tfc-store/reports"
+        element={
+          <ProtectedRoute>
+            <TFCReports />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Default Route */}
       <Route path="/" element={<Navigate to="/dashboard" />} />

@@ -174,4 +174,25 @@ export const outDutyAPI = {
   checkAvailability: (employeeId, date) => api.get(`/out-duty/check-availability/${employeeId}/${date}`)
 };
 
+// TFC Store API
+export const tfcAPI = {
+  // Yearly Messages (Historical 2021-2024)
+  importYearly: (formData) => api.post('/tfc/yearly/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getYearly: () => api.get('/tfc/yearly'),
+
+  // Monthly Messages (2025+ Zone-wise)
+  createMonthly: (data) => api.post('/tfc/monthly', data),
+  getMonthly: (params) => api.get('/tfc/monthly', { params }),
+  getMonthlyById: (id) => api.get(`/tfc/monthly/${id}`),
+  updateMonthly: (id, data) => api.put(`/tfc/monthly/${id}`, data),
+  deleteMonthly: (id) => api.delete(`/tfc/monthly/${id}`),
+
+  // Reports
+  getYearlySummary: () => api.get('/tfc/reports/yearly-summary'),
+  getMonthlyZoneReport: (params) => api.get('/tfc/reports/monthly-zone', { params })
+};
+
+
 export default api;
